@@ -46,3 +46,6 @@
 │ ├── Verify.ts
 │ └── WindowEvent.ts
 
+#### 文档
+
+https://6653302wy.github.io/ts-utils/
