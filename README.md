@@ -10,7 +10,7 @@
 
 #### 库结构
 
-.
+lib
 ├── dom/
 │ ├── Browser.ts
 │ └── Url.ts
