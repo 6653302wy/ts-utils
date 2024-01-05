@@ -1,4 +1,4 @@
-# ts-utils
+# @6653302wy/ts-utils
 
 ### ts 工具库
 
