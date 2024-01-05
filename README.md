@@ -46,19 +46,3 @@
 │ ├── Verify.ts
 │ └── WindowEvent.ts
 
-<!-- #### API 详解
-
-**Browser**
-
-**judgeBigScreen ()=> boolean**
-判断是否刘海屏
-**rem2px (n: number, base = 750)=> number**
-rem 转换成 px
-**getScrollTop ()=> number**
-获取滚动条位置
-**setScrollTop (top: number, smooth = false)=> void**
-滚动到指定位置
-**getHeightByRate (width: number, type = SizeRatioType.HORIZONTAL)=> number**
-根据 16:9 比例换算高度 默认 16:9
-**getWidthByRate (width: number, type = SizeRatioType.HORIZONTAL)=> number**
-根据 16:9 比例换算宽度 默认 16:9 -->
