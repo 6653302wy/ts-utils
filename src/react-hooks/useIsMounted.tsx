@@ -1,7 +1,7 @@
 import { useLayoutEffect, useRef, MutableRefObject } from 'react';
 
 /**
- * is component mounted or not
+ * 判断组件是否挂载
  */
 export function useIsMounted(): MutableRefObject<boolean> {
     const isMountedRef = useRef(false);

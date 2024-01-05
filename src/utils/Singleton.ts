@@ -33,6 +33,7 @@ const getRegistedInst = (name: string) => {
     return instMap[name];
 };
 
+/** 单例管理 */
 export const Singleton = {
     get,
     has,

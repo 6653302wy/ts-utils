@@ -13,6 +13,10 @@ import {
 } from './NetConstants';
 import { CbHandler, SocketMgr } from './SocketMgr';
 
+/** 网络通信管理
+ * http
+ * websocket
+ */
 export class NetManager {
     private httpServer: INet;
     private socketServer: INet;

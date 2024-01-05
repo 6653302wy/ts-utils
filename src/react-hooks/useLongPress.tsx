@@ -3,7 +3,7 @@ import { useRef, useEffect } from 'react';
 interface UseLongPress {
     (targetNode: HTMLDivElement | null, onLongPress: () => void): void;
 }
-
+/** 长按 */
 export const useLongPress: UseLongPress = (targetNode, onLongPress) => {
     const onLongPressRef = useRef(onLongPress);
     const longPressTimerRef = useRef<ReturnType<typeof setTimeout>>();

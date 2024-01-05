@@ -332,7 +332,7 @@ function toArray(value: string | string[]): string[] {
 }
 
 /**
- * get single search param from url
+ * 从url中获取指定的参数值
  * @param url
  * @param name param name
  * @returns

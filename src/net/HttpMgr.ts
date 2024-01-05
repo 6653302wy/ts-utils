@@ -5,9 +5,9 @@ import axios, {
     AxiosResponse,
     InternalAxiosRequestConfig,
 } from 'axios';
+import { LocalCache } from '../utils/LocalCache';
 import { Singleton } from '../utils/Singleton';
 import { emitEvent } from '../utils/WindowEvent';
-import { localCache } from '../utils/localCache';
 import { HttpConf, HttpContentType, INet, MethodType, NetEvent, RequestData } from './NetConstants';
 
 const formDataTypes = [HttpContentType.FORM, HttpContentType.FORM_DATA];
@@ -48,7 +48,10 @@ export class HttpMgr implements INet {
         this.reqInst.interceptors.response.use(this.onReponseInterceptor.bind(this));
     }
 
-    /** 请求 */
+    /** 请求
+     * api 请求地址
+     * d  请求参数
+     */
     request<T, D = any>(api: string, d?: RequestData<T>): Promise<D> {
         if (!this.reqInst) {
             if (!this.config) {
@@ -76,7 +79,7 @@ export class HttpMgr implements INet {
         const method = type ?? MethodType.GET;
         const reqdata = method === MethodType.GET ? 'params' : 'data';
 
-        return new Promise<any>((resolve, rej) => {
+        return new Promise<any>((resolve) => {
             if (
                 type === MethodType.POST &&
                 formDataTypes.includes(headerContentType as HttpContentType)
@@ -129,7 +132,7 @@ export class HttpMgr implements INet {
 
         // 自动保存授权信息
         if (data?.token && this.apiNeedAuth(api)) {
-            localCache.setItem(this.authKey, data.token);
+            LocalCache.setItem(this.authKey, data.token);
             // 更新token的接口里，有更新到token, 抛出事件
             if (api === this.config?.pollingToken?.api && this.config?.pollingToken?.enable) {
                 emitEvent('update_token');
@@ -148,7 +151,7 @@ export class HttpMgr implements INet {
                 // 重复出现授权错误，reject消息，授权出错后续逻辑不做重复执行
                 if (this.inAuthErr) return Promise.reject(data);
 
-                localCache.delItem(this.authKey);
+                LocalCache.delItem(this.authKey);
                 emitEvent(NetEvent.AUTH_ERROR);
                 this.onServerErr?.(code, '登录状态过期，请重新登陆');
                 // this.onRelogin();
@@ -177,17 +180,17 @@ export class HttpMgr implements INet {
 
     private pollingToken(url: string, pollingTime?: number) {
         // api没有或没有token时，不调用
-        if (!url && !localCache.getItem(this.config.authKey)) return;
+        if (!url && !LocalCache.getItem(this.config.authKey)) return;
 
         this.reqInst.get(url);
         setInterval(() => {
-            if (!url && !localCache.getItem(this.config.authKey)) return;
+            if (!url && !LocalCache.getItem(this.config.authKey)) return;
             this.reqInst.get(url);
         }, pollingTime || 300000);
     }
 
     private setAuthInHeaders(headers: AxiosRequestHeaders, needAuth: boolean, authKey: string) {
-        headers.Authorization = needAuth ? localCache.getItem(authKey) ?? '' : '';
+        headers.Authorization = needAuth ? LocalCache.getItem(authKey) ?? '' : '';
         return headers;
     }
 
