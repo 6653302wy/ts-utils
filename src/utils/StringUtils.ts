@@ -51,10 +51,27 @@ const insertStr = (origin: string, index: number, insert: string) => {
     return origin.substring(0, index) + insert + origin.substring(index);
 };
 
+/** 将16进制颜色转换成rbga
+ * @param hex
+ * @param alpha 默认1
+ */
+const hexToRgba = (hex: string, alpha?: number) => {
+    // 去掉十六进制颜色值中的 "#" 符号
+    const hexstr = hex.replace('#', '');
+
+    // 将十六进制值分割成红、绿、蓝三部分
+    const red = parseInt(hexstr.substring(0, 2), 16);
+    const green = parseInt(hexstr.substring(2, 4), 16);
+    const blue = parseInt(hexstr.substring(4, 6), 16);
+
+    return `rgba(${red}, ${green}, ${blue}, ${alpha ?? 1})`;
+};
+
 export const StringUtils = {
     upperFirst,
     byteSize,
     removeHTML,
     mask,
     insertStr,
+    hexToRgba,
 };

@@ -3,15 +3,15 @@ import { ObjectUtils } from '../utils/ObjectUtils';
 import { Queue } from '../utils/Queue';
 import { Singleton } from '../utils/Singleton';
 import { emitEvent } from '../utils/WindowEvent';
-import { INet, NetEvent, RequestData, ServerResponse } from './INet';
-
-// 请求数据类型
-enum DataType {
-    /** 字符串 */
-    TYPE_STRING = 'string',
-    /** 二进制 */
-    TYPE_BINARY = 'binary',
-}
+import {
+    INet,
+    NetEvent,
+    ReqCmd,
+    RequestData,
+    ServerResponse,
+    SocketConf,
+    SocketDataType,
+} from './NetConstants';
 
 enum SocketState {
     // 连接超时
@@ -34,38 +34,12 @@ enum BinaryType {
     TYPE_BLOB = 'blob',
     TYPE_ARRAY_BUFFER = 'arraybuffer',
 }
-export interface SocketConf {
-    /** 服务器url */
-    url: string;
-    /** 传输数据格式 */
-    dataType: DataType;
-    /** 二进制传输相关参数 */
-    binaryConfig?: {
-        /** 二进制消息头长度 */
-        protocolHeadLen: number;
-        /** 二进制数据类型 默认 arraybuffer */
-        binaryType?: BinaryType;
-        /** 是否小端字节序 */
-        littleEndian?: boolean;
-    };
-    /** 心跳协议名 */
-    heartBeatCmd?: string;
-    /** 心跳间隔时间 默认5000 */
-    heartBeatTime?: number;
-    /** 连接超时时间 默认3000 */
-    timeoutTime?: number;
-    /** 重连次数 不设置则无限重连 */
-    reconnectNum?: number;
-    /** errcode过滤的协议列表 */
-    errExcludeCMDList?: string[];
-}
 
 export type CbHandler = <T>(data?: T) => void;
-export type ReqCmd<T> = T;
 
-type ReqData = RequestData<unknown> & { api: string };
+type ReqData = { event: string; data?: unknown }; // RequestData<unknown> & Partial<{ api: string }>;
 export class SocketMgr implements INet {
-    private config: SocketConf = {} as SocketConf;
+    private config = {} as SocketConf;
     private socket: WebSocket | undefined;
     // 当前scoket状态
     private state: number;
@@ -90,6 +64,10 @@ export class SocketMgr implements INet {
     // 是否手动关闭socket
     private manualClose = false;
 
+    private successCode: string | number = 0;
+    private errCode: string | number = 0;
+    private authErrCode: string | number = 0;
+
     static get inst() {
         return Singleton.get(SocketMgr);
     }
@@ -103,9 +81,10 @@ export class SocketMgr implements INet {
         this.manualClose = false;
     }
 
-    setConfig<T>(conf: T) {
-        this.config = conf as SocketConf;
-        console.log('socket setConfig: ', conf);
+    setConfig(conf: SocketConf) {
+        this.config = conf;
+        console.log('[socket] setConfig: ', conf);
+        if (!conf?.dataType) this.config.dataType = SocketDataType.TYPE_STRING;
     }
 
     /** ws是否已连接上 */
@@ -118,6 +97,7 @@ export class SocketMgr implements INet {
      * @param url 连接url，没有设置则取config中的url
      */
     connect(force?: boolean, url?: string) {
+        if (url) this.config.url = url;
         if (typeof WebSocket === 'undefined') {
             console.log('您的浏览器不支持WebSocket');
             return;
@@ -131,11 +111,11 @@ export class SocketMgr implements INet {
 
         const conneturl = url || this.config.url;
         this.socket = new WebSocket(conneturl);
-        if (this.config.dataType === DataType.TYPE_BINARY) {
+        if (this.config.dataType === SocketDataType.TYPE_BINARY) {
             this.socket.binaryType =
                 this.config?.binaryConfig?.binaryType || BinaryType.TYPE_ARRAY_BUFFER;
         }
-        console.log(`start socket connect： ${conneturl}`);
+        console.log(`[socket connect] ${conneturl}`);
 
         this.registerEvents(true);
         this.updateState(SocketState.CONNECTING);
@@ -143,12 +123,12 @@ export class SocketMgr implements INet {
     }
 
     close() {
-        this.manualClose = true;
         this.disposeSocket();
+        this.manualClose = true;
     }
 
     private onConnected() {
-        console.log('！！！！！！ socket connected ！！！！！！ ');
+        console.log('[socket connect] ！！！！！！ connected ！！！！！！ ');
 
         this.clearReconnetTimer();
         this.clearHeartBeatTimer();
@@ -171,10 +151,10 @@ export class SocketMgr implements INet {
 
         // 设置了最大重连次数
         if (
-            Number(this.config?.reconnectNum) &&
+            Number(this.config?.reconnectNum) > 0 &&
             this.reconnetNum >= Number(this.config?.reconnectNum)
         ) {
-            console.log(`超过最大重连次数，取消重连`);
+            console.log(`[socket reconnect] 超过最大重连次数，取消重连`);
             this.close();
             return;
         }
@@ -183,7 +163,7 @@ export class SocketMgr implements INet {
             this.reconnecting = true;
             this.reconnetNum += 1;
             this.connect();
-            console.log('开始重连，重连次数 ===', this.reconnetNum);
+            console.log('[socket reconnect] 开始重连，重连次数 ===', this.reconnetNum);
         }, 2000);
     }
 
@@ -199,18 +179,16 @@ export class SocketMgr implements INet {
         } else this.cmdHandlerDic.set(cmd, handler);
     }
 
-    request<T, D>(api: string, params?: RequestData<T>): Promise<D> {
-        console.log('socket request: ', api, params);
+    request<D>(api?: string, data?: RequestData): Promise<D> {
+        const sendd = { event: api, data: data?.data };
+        console.log('[socket send] ', sendd);
         return new Promise<any>((resolve) => {
-            this.reqQueue.add({ api, ...params });
-
+            this.reqQueue.add(sendd);
             if (!this.isConnected) {
-                console.warn(`cmd:${api} send error, state: ${this.state}`);
+                console.warn(`[scoket send error] socket not connected`);
                 return;
             }
-
             this.onSendNextMsg();
-
             resolve(true);
         });
     }
@@ -226,16 +204,16 @@ export class SocketMgr implements INet {
         this.sending = true;
 
         // string格式传输数据
-        if (this.config.dataType === DataType.TYPE_STRING) {
+        if (this.config.dataType === SocketDataType.TYPE_STRING) {
             this.socket.send(JSON.stringify(sendMsg));
         } else {
             // 二进制传输
 
             // 设置协议名
-            const cmdName = sendMsg.api;
+            const cmdName = sendMsg.event;
             const cmdNameBuffer = this.stringToArrayBuffer(cmdName);
             // 设置消息体信息
-            const msg = sendMsg?.params || '';
+            const msg = sendMsg?.data || '';
             const msgcontent = typeof msg === 'string' ? msg : JSON.stringify(msg);
             const bodyBuffer = this.stringToArrayBuffer(msgcontent);
             // 设置头信息
@@ -258,7 +236,7 @@ export class SocketMgr implements INet {
             this.socket.send(finalBuffer);
         }
 
-        console.log('socket send : ', sendMsg);
+        // console.log('[socket send] ', sendMsg);
 
         // this.tagRequestTime();
         this.sending = false;
@@ -272,11 +250,11 @@ export class SocketMgr implements INet {
 
         const msg = e.data;
 
-        if (this.config.dataType === DataType.TYPE_BINARY && msg instanceof ArrayBuffer) {
+        if (this.config.dataType === SocketDataType.TYPE_BINARY && msg instanceof ArrayBuffer) {
             const msgLen = msg.byteLength;
             // 数据总长度低于协议头长度，此条消息无效
             if (msgLen <= (this.config?.binaryConfig?.protocolHeadLen || 4)) {
-                console.warn('socket msg err: byteLen not math ');
+                console.warn('[socket msg err] byteLen not math ');
                 return;
             }
         }
@@ -296,16 +274,17 @@ export class SocketMgr implements INet {
 
         this.parsing = true;
 
-        const stringTypeMsg = this.config.dataType === DataType.TYPE_STRING;
+        const stringTypeMsg = this.config.dataType === SocketDataType.TYPE_STRING;
         const body = ObjectUtils.parseJSON(msg as string);
 
         const bodyContent = (body?.body ?? body) as ServerResponse;
 
         let cmd = stringTypeMsg ? bodyContent?.event || '' : ''; // 消息名
-        const hasError = stringTypeMsg ? !bodyContent?.success : false;
         const msgData = stringTypeMsg ? bodyContent?.data || '' : '';
-
-        console.log('socket receive:', ObjectUtils.parseJSON(msg as string));
+        const hasError = bodyContent?.success === false;
+        const errmsg = stringTypeMsg ? bodyContent?.message || '' : '';
+        const errcode = stringTypeMsg ? bodyContent?.code || '' : '';
+        console.log('[socket receive] ', ObjectUtils.parseJSON(msg as string));
 
         // 二进制数据处理
         if (!stringTypeMsg) {
@@ -322,13 +301,25 @@ export class SocketMgr implements INet {
             );
         }
 
-        // 错误处理
-        if (hasError && !this.config?.errExcludeCMDList?.includes(cmd)) {
-            this.onServerErr('', ObjectUtils.toString(bodyContent));
+        const cb = this.cmdHandlerDic.get(cmd);
+
+        // 不做统一处理的协议,返回完整response数据
+        if (this.config?.responseWithoutInterceptors?.includes(cmd)) {
+            cb?.(bodyContent);
         } else {
+            // 错误处理
+            // eslint-disable-next-line no-lonely-if
+            if (hasError) this.onServerErr(errcode, errmsg);
             // 处理回调
-            const cb = this.cmdHandlerDic.get(cmd);
-            cb?.(msgData || '');
+            else cb?.(msgData || '');
+            // if (hasError) {
+            //     if (!this.config?.errExcludeCMDList?.includes(cmd))
+            //         this.onServerErr(errcode, errmsg);
+            //     else cb?.(bodyContent);
+            // } else {
+            //     // 处理回调
+            //     cb?.(msgData || '');
+            // }
         }
 
         this.parsing = false;
@@ -336,18 +327,13 @@ export class SocketMgr implements INet {
     }
 
     onServerErr(code: string | number, msg: string) {
-        console.log('socket onServerErr: ', code, msg);
+        console.log('[socket codeErr] ', code, msg);
     }
 
     /** 发送心跳 */
     private heartBeat() {
         if (!this.config?.heartBeatCmd) return;
-        console.log(
-            '连接成功===，发送心跳。',
-            this.config?.heartBeatCmd,
-            this.isConnected,
-            this.socket?.readyState,
-        );
+        console.log('[socket heartBeat] ', this.config?.heartBeatCmd);
 
         this.hbTimerId = window.setInterval(() => {
             this?.socket?.send(this.config?.heartBeatCmd || '');
@@ -370,7 +356,7 @@ export class SocketMgr implements INet {
     }
 
     protected onClose() {
-        console.warn('socket has been closed ... ');
+        console.log('[socket close] is closed by manual: ', this.manualClose);
         this.reconnecting = false;
         if (this.manualClose) {
             this.destroy();
@@ -379,7 +365,7 @@ export class SocketMgr implements INet {
     }
 
     protected onIOError(e: Event) {
-        console.warn('socket onIOError: ', e);
+        console.warn('[socket onIOError] ', e);
         this.updateState(SocketState.IO_ERROR);
         this.clearHeartBeatTimer();
         this.clearReconnetTimer();

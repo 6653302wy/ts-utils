@@ -1,5 +1,3 @@
-import { getURLParam } from './Url';
-
 /** 是否刘海屏 */
 const judgeBigScreen = (): boolean => {
     let result = false;
@@ -38,12 +36,22 @@ const setScrollTop = (top: number, smooth = false): void => {
     }
 };
 
-const paramsData = {} as Record<string, string>;
-const getUrlParam = (key: string): string => {
-    if (key in paramsData) {
-        return paramsData[key];
-    }
-    return getURLParam(window.location.href, key);
+export enum SizeRatioType {
+    UNDEFINED,
+    /** 横向16:9 */
+    HORIZONTAL,
+    /** 竖向9:16 */
+    VERTICAL,
+}
+
+// 根据16:9 比例换算高度 默认16:9
+export const getHeightByRate = (width: number, type = SizeRatioType.HORIZONTAL) => {
+    return type === SizeRatioType.HORIZONTAL ? (width * 9) / 16 : (width * 16) / 9;
+};
+
+// 根据16:9 比例换算宽度 默认16:9
+export const getWidthByRate = (height: number, type = SizeRatioType.HORIZONTAL) => {
+    return type === SizeRatioType.HORIZONTAL ? (height * 16) / 9 : (height * 9) / 16;
 };
 
 export const Browser = {
@@ -51,5 +59,6 @@ export const Browser = {
     rem2px,
     getScrollTop,
     setScrollTop,
-    getUrlParam,
+    getHeightByRate,
+    getWidthByRate,
 };

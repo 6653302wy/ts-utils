@@ -1,4 +1,4 @@
-import mammoth from 'mammoth';
+// import mammoth from 'mammoth';
 import { WorkBook, read } from 'xlsx';
 import { convert } from './Convert';
 
@@ -36,37 +36,36 @@ const parseTxt = (file: File, errCallback?: () => void): Promise<string> => {
     });
 };
 
-const parseDocx = (file: File, errCallback?: () => void): Promise<string> => {
-    return new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onload = async () => {
-            const arrayBuffer = reader.result as ArrayBuffer;
+// const parseDocx = (file: File, errCallback?: () => void): Promise<string> => {
+//     return new Promise((resolve) => {
+//         const reader = new FileReader();
+//         reader.onload = async () => {
+//             const arrayBuffer = reader.result as ArrayBuffer;
 
-            if (!arrayBuffer) return;
-            const input = new Uint8Array(arrayBuffer);
-            // mammoth.extractRawText(input)
-            // Extract the raw text of the document. This will ignore all formatting in the document. Each paragraph is followed by two newlines.
-            const result = mammoth.extractRawText({ arrayBuffer: input });
-            result
-                .then((res) => {
-                    // mammoth.extractRawText 会给每个段落多加两个换行符，这里再去掉
-                    const text = res.value.replace(/\n\n/g, '\n');
-                    resolve(text.slice(0, text.length - 2)); // 最后一个换行符也得干掉
-                })
-                .catch((err) => {
-                    console.warn('文件解析错误： ', err);
-                    errCallback?.();
-                    resolve('');
-                });
-        };
-        reader.readAsArrayBuffer(file);
-        reader.onerror = () => {
-            console.warn('Failed to read file.');
-            errCallback?.();
-            resolve('');
-        };
-    });
-};
+//             if (!arrayBuffer) return;
+//             const input = new Uint8Array(arrayBuffer);
+//             // Extract the raw text of the document. This will ignore all formatting in the document. Each paragraph is followed by two newlines.
+//             const result = mammoth.extractRawText({ arrayBuffer: input });
+//             result
+//                 .then((res) => {
+//                     // mammoth.extractRawText 会给每个段落多加两个换行符，这里再去掉
+//                     const text = res.value.replace(/\n\n/g, '\n');
+//                     resolve(text.slice(0, text.length - 2)); // 最后一个换行符也得干掉
+//                 })
+//                 .catch((err) => {
+//                     console.warn('文件解析错误： ', err);
+//                     errCallback?.();
+//                     resolve('');
+//                 });
+//         };
+//         reader.readAsArrayBuffer(file);
+//         reader.onerror = () => {
+//             console.warn('Failed to read file.');
+//             errCallback?.();
+//             resolve('');
+//         };
+//     });
+// };
 
 /** 获取文件的文本内容
  * @param file
@@ -87,10 +86,10 @@ export const getFileText = async (file: File, errCallback?: () => void) => {
         case 'xlsx':
             content = (await parseXlsx(file)) as string;
             break;
-        case 'doc':
-        case 'docx':
-            content = await parseDocx(file, errCallback);
-            break;
+        // case 'doc':
+        // case 'docx':
+        //     content = await parseDocx(file, errCallback);
+        //     break;
         default:
     }
 
@@ -98,7 +97,7 @@ export const getFileText = async (file: File, errCallback?: () => void) => {
 };
 
 /** 文件解析器
- * 需要安装 util, path-browserify依赖，并配置webpack resolve的fallback, exp:
+ * 解析doc,docx 文件 需要安装 mammoth, util, path-browserify依赖，并配置webpack中resolve配置项的fallback。 exp:
  * resolve: {
             fallback: {
                 path: require.resolve('path-browserify'),

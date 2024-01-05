@@ -1,8 +1,17 @@
 import { Singleton } from '../utils/Singleton';
 import { catchEvent, emitEvent } from '../utils/WindowEvent';
 import { HttpMgr } from './HttpMgr';
-import { INet, NetEvent, RequestData, ServerErrCommonHdr, ServerType } from './INet';
-import { CbHandler, ReqCmd, SocketMgr } from './SocketMgr';
+import {
+    HttpConf,
+    INet,
+    NetEvent,
+    ReqCmd,
+    RequestData,
+    ServerErrCommonHdr,
+    ServerType,
+    SocketConf,
+} from './NetConstants';
+import { CbHandler, SocketMgr } from './SocketMgr';
 
 export class NetManager {
     private httpServer: INet;
@@ -24,16 +33,19 @@ export class NetManager {
      * @param conf 协议的初始化配置
      * @param autoConnet 是否自动开启socket连接
      */
-    init<T>(serverType: ServerType, conf: T, autoConnet?: boolean) {
-        if (serverType === ServerType.HTTP) this.httpServer.setConfig(conf);
+    init(serverType: ServerType, conf: HttpConf | SocketConf, autoConnet?: boolean) {
+        if (serverType === ServerType.HTTP) this.httpServer.setConfig(conf as HttpConf);
         else {
-            this.socketServer.setConfig(conf);
+            this.socketServer.setConfig(conf as SocketConf);
             if (autoConnet) SocketMgr.inst.connect();
         }
     }
 
-    /** 请求接口 */
-    request<T, D>(api: string, data?: RequestData<T>, serverType = ServerType.HTTP): Promise<D> {
+    /** 请求接口
+     * @param api
+     * @param data http请求参数类型为RequestData， 需带上method；
+     */
+    request<D>(api: string, data?: RequestData, serverType = ServerType.HTTP): Promise<D> {
         if (serverType === ServerType.HTTP) return this.httpServer.request(api, data);
         return this.socketServer.request(api, data);
     }
@@ -47,6 +59,10 @@ export class NetManager {
 
     socketRegisterCmd(cmd: ReqCmd<string> | ReqCmd<string>[], handler: CbHandler) {
         SocketMgr.inst.regCMDHandler(cmd, handler);
+    }
+
+    socketClose() {
+        SocketMgr.inst.close();
     }
     /// ///////////////////////////////////////////////
 

@@ -1,24 +1,23 @@
 import { useCallback, useEffect, useRef } from 'react';
 
 type TimerReturnType = ReturnType<typeof setTimeout>;
-type IntervalReturnType = ReturnType<typeof setInterval>;
 type TimerIdType = string | number | undefined;
 
 type TimerType = {
     timerOnce: (fun: () => void, delay: number) => TimerReturnType;
-    timerLoop: (fun: () => void, delay: number, runCount?: number) => IntervalReturnType;
-    // clearTimer: (timer: TimerIdType) => void;
-    // clearTimerAll: () => void;
+    timerLoop: (fun: () => void, delay: number, runCount?: number) => TimerReturnType;
+    clearTimer: (timer: TimerReturnType) => void;
+    clearTimerAll: () => void;
 };
 
 export const useTimer = (): TimerType => {
     const timerList = useRef<TimerIdType[]>([]);
 
     const delTimer = useCallback(
-        (timerID: TimerIdType, once?: boolean) => {
+        (timerID: TimerIdType) => {
             if (timerID) {
-                if (once) clearTimeout(Number(timerID));
-                else clearInterval(Number(timerID));
+                clearTimeout(Number(timerID));
+                clearInterval(Number(timerID));
 
                 const timerIndex = timerList.current.indexOf(Number(timerID));
                 if (timerIndex >= 0) {
@@ -30,12 +29,12 @@ export const useTimer = (): TimerType => {
         [timerList],
     );
 
-    // const clearTimer = useCallback(
-    //     (timerID: TimerIdType) => {
-    //         delTimer(timerID);
-    //     },
-    //     [delTimer],
-    // );
+    const clearTimer = useCallback(
+        (timerID: TimerIdType) => {
+            delTimer(timerID);
+        },
+        [delTimer],
+    );
 
     const clearTimerAll = useCallback(() => {
         while (timerList.current.length) {
@@ -49,32 +48,28 @@ export const useTimer = (): TimerType => {
         timerList.current.length = 0;
     }, [timerList]);
 
-    /** 执行一次timer */
-    const timerOnce = (method: () => void, delay: number): TimerReturnType => {
+    const timerOnce = (method: () => void, delay: number): ReturnType<typeof setTimeout> => {
         const timer = setTimeout(() => {
             method();
-            delTimer(timer, true);
+            clearTimer(timer);
         }, delay);
 
         timerList.current.push(timer);
         return timer;
     };
 
-    /** 执行多次timer
-     * @mpara runCount 执行次数 不填则为循环执行
-     */
     const timerLoop = (
         method: () => void,
         delay: number,
         runCount?: number,
-    ): IntervalReturnType => {
+    ): ReturnType<typeof setTimeout> => {
         const timer = setInterval(() => {
             method();
             let num = runCount;
             if (num) {
                 num -= 1;
                 if (num <= 0) {
-                    delTimer(timer, false);
+                    clearTimer(timer);
                 }
             }
         }, delay);
@@ -83,8 +78,10 @@ export const useTimer = (): TimerType => {
     };
 
     useEffect(() => {
-        return clearTimerAll;
+        return () => {
+            clearTimerAll();
+        };
     }, [clearTimerAll]);
 
-    return { timerOnce, timerLoop };
+    return { timerOnce, timerLoop, clearTimer, clearTimerAll };
 };

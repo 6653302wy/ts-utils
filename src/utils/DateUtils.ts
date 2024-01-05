@@ -1,6 +1,6 @@
 /**
  * 秒数转换成 时：分钟：秒
- * @param formart ":" | "-" | 时分秒
+ * @param formart 间隔符， 例 ":" | "-" | 时分秒
  */
 const formatSecond = (time: number | string, formart?: string) => {
     const counttime = Number(time);
