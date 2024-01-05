@@ -9,7 +9,7 @@
 `$ npm install @6653302wy/ts-utils`
 
 #### 库结构
-
+```
 lib
 ├── dom/
 │ ├── Browser.ts
@@ -45,7 +45,7 @@ lib
 │ ├── StringUtils.ts
 │ ├── Verify.ts
 │ └── WindowEvent.ts
-
+```
 #### 文档
 
 https://6653302wy.github.io/ts-utils/
