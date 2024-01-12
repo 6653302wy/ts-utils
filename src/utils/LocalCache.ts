@@ -17,4 +17,5 @@ const clear = () => {
     localStorage.clear();
 };
 
+/** 简易的本地缓存封装 */
 export const LocalCache = { setItem, getItem, delItem, clear };

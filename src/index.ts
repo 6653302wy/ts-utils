@@ -18,6 +18,7 @@ export * from './utils/WindowEvent';
 export * from './utils/ArrayUtils';
 export * from './utils/DateUtils';
 export * from './utils/Convert';
+export * from './utils/PcmPlayer';
 // export * from './utils/FileParser';
 export * from './react-hooks/useEventListener';
 export * from './react-hooks/useTimer';
@@ -26,5 +27,3 @@ export * from './react-hooks/usePortal';
 export * from './react-hooks/useLongPress';
 export * from './react-hooks/useToggle';
 export * from './react-hooks/useIsMounted';
-
-// export * from './types';

@@ -6,8 +6,12 @@ type StorageDB = {
     removeItem: (key: string) => void;
 };
 
+/**
+ * 本地缓存，基于 localStorage 实现，支持基本类型和对象类型。
+ * 数据存储在$cache对象中
+ */
 export class LocalStorage {
-    static readonly inst = new LocalStorage('$custom');
+    static readonly inst = new LocalStorage('$cache');
 
     private _data: Record<string, unknown>;
     readonly mainKey: string;
