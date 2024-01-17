@@ -1,14 +1,14 @@
 # @6653302wy/ts-utils
 
-### ts 工具库
+### introduce
 
-封装了一部分常用的工具函数，方便使用。
+some commonly used tool functions and react hooks
 
-#### 安装
+#### install
 
 `$ npm install @6653302wy/ts-utils`
 
-#### 库结构
+#### the library structure
 
 ```
 lib
@@ -49,6 +49,6 @@ lib
 │ └── WindowEvent.ts
 ```
 
-#### 文档
+#### doc
 
 https://6653302wy.github.io/ts-utils/
