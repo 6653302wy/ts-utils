@@ -139,8 +139,19 @@ export class HttpMgr implements INet {
             }
         }
 
+        // 所有接口都不做拦截
+        if (
+            typeof this.config?.responseWithoutInterceptors === 'string' &&
+            this.config?.responseWithoutInterceptors === '*'
+        ) {
+            return data;
+        }
+
         // 不做拦截处理的接口, 返回完整response
-        if (this.config?.responseWithoutInterceptors?.some((url) => api.includes(url))) {
+        if (
+            typeof this.config?.responseWithoutInterceptors !== 'string' &&
+            this.config?.responseWithoutInterceptors?.some((url) => api.includes(url))
+        ) {
             return res.data;
         }
 
@@ -190,11 +201,19 @@ export class HttpMgr implements INet {
     }
 
     private setAuthInHeaders(headers: AxiosRequestHeaders, needAuth: boolean, authKey: string) {
+        // 不需要添加授权
+        if (
+            typeof this.config?.requestWithoutAuth === 'string' &&
+            this.config?.requestWithoutAuth === '*'
+        )
+            return headers;
+
         headers.Authorization = needAuth ? LocalCache.getItem(authKey) ?? '' : '';
         return headers;
     }
 
     private apiNeedAuth(api: string) {
+        if (typeof this.config?.requestWithoutAuth === 'string') return false;
         return !this.config?.requestWithoutAuth?.some((url) => api.includes(url));
     }
 }

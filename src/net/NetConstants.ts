@@ -33,10 +33,10 @@ export interface HttpConf {
         /** token错误 默认 401 */
         authError: string | number;
     };
-    /** 不需要走授权key的接口列表 */
-    requestWithoutAuth?: string[];
-    /** 不做返回拦截处理的接口列表, 返回完整response */
-    responseWithoutInterceptors?: string[];
+    /** 不需要走授权key的接口列表 为 ‘*’时表示不需要设置授权 */
+    requestWithoutAuth?: string[] | string;
+    /** 不做返回拦截处理的接口列表 为 ‘*’时表示所有接口都不需要做拦截处理。 返回完整response */
+    responseWithoutInterceptors?: string[] | string;
     /** 是否轮询获取最新token */
     pollingToken?: {
         enable: boolean;
