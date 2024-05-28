@@ -1,6 +1,7 @@
 export * from './net/NetManager';
 export * from './net/SocketMgr';
 export * from './net/HttpMgr';
+export * from './net/NetConstants';
 export * from './dom/Browser';
 export * from './dom/Url';
 export * from './utils/Device';
