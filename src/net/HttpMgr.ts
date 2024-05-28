@@ -144,7 +144,7 @@ export class HttpMgr implements INet {
             typeof this.config?.responseWithoutInterceptors === 'string' &&
             this.config?.responseWithoutInterceptors === '*'
         ) {
-            return data;
+            return res.data;
         }
 
         // 不做拦截处理的接口, 返回完整response
