@@ -24,6 +24,7 @@ export interface HttpConf {
     timeout?: number;
     /** 设置到header里的授权key 默认 token */
     authKey?: string;
+    withCredentials?: boolean;
     /** 接口回复的code */
     responseCode?: {
         /** 成功 默认 1 */

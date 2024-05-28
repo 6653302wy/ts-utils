@@ -41,7 +41,7 @@ export class HttpMgr implements INet {
             baseURL: this.config.baseURL ?? '',
             timeout: this.config?.timeout ?? 2000,
             headers: { 'Content-Type': HttpContentType.DEFAULT },
-            withCredentials: true,
+            withCredentials: conf?.withCredentials ?? true,
         });
 
         this.reqInst.interceptors.request.use(this.onRequestInterceptor.bind(this));
