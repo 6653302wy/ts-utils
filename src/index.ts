@@ -19,6 +19,7 @@ export * from './utils/ArrayUtils';
 export * from './utils/DateUtils';
 export * from './utils/Convert';
 export * from './utils/PcmPlayer';
+export * from './utils/AssetsDynamicLoad';
 // export * from './utils/FileParser';
 export * from './react-hooks/useEventListener';
 export * from './react-hooks/useTimer';
