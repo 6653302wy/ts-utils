@@ -35,7 +35,12 @@ export class HttpMgr implements INet {
         this.authErrCode = this.config?.responseCode?.authError || 401;
         this.authKey = this.config?.authKey ?? 'token';
 
-        if (this.reqInst) return;
+        if (this.reqInst) {
+            this.reqInst.defaults.baseURL = this.config.baseURL ?? '';
+            this.reqInst.defaults.timeout = this.config?.timeout ?? 2000;
+            this.reqInst.defaults.withCredentials = conf?.withCredentials ?? true;
+            return;
+        }
 
         this.reqInst = axios.create({
             baseURL: this.config.baseURL ?? '',

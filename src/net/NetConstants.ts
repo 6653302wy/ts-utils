@@ -18,13 +18,11 @@ export enum HttpContentType {
 
 export interface HttpConf {
     baseURL: string;
-    /** 是否打开log 默认打开 */
-    log?: boolean;
     /** 超时， 默认2000ms */
     timeout?: number;
+    withCredentials?: boolean;
     /** 设置到header里的授权key 默认 token */
     authKey?: string;
-    withCredentials?: boolean;
     /** 接口回复的code */
     responseCode?: {
         /** 成功 默认 1 */
