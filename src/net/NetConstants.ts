@@ -34,7 +34,7 @@ export interface HttpConf {
     };
     /** 不需要走授权key的接口列表 为 ‘*’时表示不需要设置授权 */
     requestWithoutAuth?: string[] | string;
-    /** 不做返回拦截处理的接口列表 为 ‘*’时表示所有接口都不需要做拦截处理。 返回完整response */
+    /** 不做返回拦截处理的接口列表，不设置此字段默认返回data。 为 ‘*’时表示所有接口都不需要做拦截处理，返回完整response */
     responseWithoutInterceptors?: string[] | string;
     /** 是否轮询获取最新token */
     pollingToken?: {

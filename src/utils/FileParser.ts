@@ -96,6 +96,31 @@ export const getFileText = async (file: File, errCallback?: () => void) => {
     return content || '';
 };
 
+/**
+ * 加载excel文件
+ * @param url
+ * @returns
+ */
+const loadExcelFile = async (url: string) => {
+    const f = await fetch(url);
+    const ab = await f.arrayBuffer();
+    const wb = read(ab);
+    return wb;
+};
+
+/**
+ * 文件大小是否超限
+ * @param size 文件大小
+ * @param limitSize 限制大小
+ * @returns boolean
+ */
+const checkFileSize = (size: number, limitSize: number) => {
+    if (size > 1024 * 1024 * limitSize) {
+        return false;
+    }
+    return true;
+};
+
 /** 文件解析器
  * 解析doc,docx 文件 需要安装 mammoth, util, path-browserify依赖，并配置webpack中resolve配置项的fallback。 exp:
  * resolve: {
@@ -108,4 +133,6 @@ export const getFileText = async (file: File, errCallback?: () => void) => {
 export const FileParser = {
     getFileText,
     parseXlsx,
+    loadExcelFile,
+    checkFileSize,
 };

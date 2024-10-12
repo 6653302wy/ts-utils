@@ -52,7 +52,7 @@ const insertStr = (origin: string, index: number, insert: string) => {
 };
 
 /** 将16进制颜色转换成rbga
- * @param hex
+ * @param hex 例如： #ff0000
  * @param alpha 默认1
  */
 const hexToRgba = (hex: string, alpha?: number) => {
@@ -67,6 +67,11 @@ const hexToRgba = (hex: string, alpha?: number) => {
     return `rgba(${red}, ${green}, ${blue}, ${alpha ?? 1})`;
 };
 
+/** 字符串是否全数字 */
+const isNumeric = (str: string) => {
+    return /^\d+$/.test(str);
+};
+
 export const StringUtils = {
     upperFirst,
     byteSize,
@@ -74,4 +79,5 @@ export const StringUtils = {
     mask,
     insertStr,
     hexToRgba,
+    isNumeric,
 };

@@ -8,20 +8,20 @@ export const consoleCaches = () => {
 };
 
 /**
- * 预加载图片(需项目使用webpack打包才可用)
+ * 预加载图片(需项目的构建使用webpack)
  * @param r webpack 的 require.context
  *
  * e.g.  assetsPreLoad((require as any).context('./assets', true, /\.png|.jpg|.jpeg$/));
  * @param prefix 资源前缀(多个模块使用，可能造成key重复，所以可能需要前缀)
  */
-export const assetsPreLoad = (r: unknown, prefix?: string) => {
+export const assetsPreLoad = (r: unknown, prefix?: string, log?: boolean) => {
     const rstuff = r as any;
     rstuff.keys().forEach((key: string) => {
         const cacheKey = key.split('/').pop();
         allAssets.set(`${prefix ?? ''}${cacheKey}`, rstuff(key));
     });
 
-    consoleCaches();
+    if (log) consoleCaches();
 };
 
 /**

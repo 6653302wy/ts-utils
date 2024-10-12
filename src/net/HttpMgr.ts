@@ -132,7 +132,7 @@ export class HttpMgr implements INet {
         // blob文件类型直接返回
         if (res.config.responseType === 'blob') return res;
 
-        const { code, data, message } = res.data;
+        const { code, data, message, msg } = res.data;
         const api = res.config?.url || '';
 
         // 自动保存授权信息
@@ -177,6 +177,7 @@ export class HttpMgr implements INet {
                 // console.log(`http server reponse errCode==== code:${code}, msg: ${message}`);
                 return Promise.reject(message);
             default:
+                this.onServerErr?.(code, message || msg);
                 return Promise.reject(data);
         }
 
