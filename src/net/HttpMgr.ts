@@ -45,7 +45,7 @@ export class HttpMgr implements INet {
         this.reqInst = axios.create({
             baseURL: this.config.baseURL ?? '',
             timeout: this.config?.timeout ?? 2000,
-            headers: { 'Content-Type': HttpContentType.DEFAULT },
+            headers: this.config?.header ?? { 'Content-Type': HttpContentType.DEFAULT },
             withCredentials: conf?.withCredentials ?? true,
         });
 
@@ -91,7 +91,7 @@ export class HttpMgr implements INet {
             ) {
                 this?.reqInst
                     ?.postForm?.(api, data, {
-                        headers: { 'Content-Type': headerContentType },
+                        headers: { 'Content-Type': headerContentType, ...this.config.header },
                     })
                     .then((res) => resolve(res ?? ''))
                     .catch((err) => {
@@ -173,9 +173,9 @@ export class HttpMgr implements INet {
                 // this.onRelogin();
                 break;
             case this.errCode: // 错误code
-                this.onServerErr?.(code, message);
+                this.onServerErr?.(code, message || msg);
                 // console.log(`http server reponse errCode==== code:${code}, msg: ${message}`);
-                return Promise.reject(message);
+                return Promise.reject(message || msg);
             default:
                 this.onServerErr?.(code, message || msg);
                 return Promise.reject(data);

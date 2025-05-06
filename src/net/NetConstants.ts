@@ -43,6 +43,8 @@ export interface HttpConf {
         /** 轮询间隔， 默认5分钟 */
         pollingTime?: number;
     };
+    /** 请求头 */
+    header?: Record<string, string>;
 }
 
 // 请求数据类型
