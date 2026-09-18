@@ -20,11 +20,23 @@ gulp.task('clean', () => {
 });
 
 const externalDeps = ['react', 'react-dom', 'axios'];
+
+/**
+ * rpt2 默认的 include 为 `*.ts+(|x)` / `**\/*.ts+(|x)`，其中 `+(|x)` 是 extglob 语法。
+ * picomatch 升级到 2.3.2 后该模式不再匹配任何路径，导致 rpt2 内部 filter 全部返回 false：
+ * resolveId 返回空 -> Rollup 报 `Could not resolve "..."`，且 transform 被跳过（产物会残留 TS 语法）。
+ * 这里显式替换为普通 glob，绕开 extglob 的匹配行为差异。
+ */
+const tsPluginOptions = {
+    include: ['**/*.ts', '**/*.tsx'],
+    exclude: ['**/*.d.ts'],
+};
+
 gulp.task('build', async () => {
     const bundle = await rollup.rollup({
         input: resolvePath('./src/index.ts'),
         external: externalDeps,
-        plugins: [typescript(), terser()],
+        plugins: [typescript(tsPluginOptions), terser()],
         onwarn,
     });
 
